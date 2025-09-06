@@ -12,10 +12,10 @@ Real-time stock data pipeline with automated alerts and predictive analytics for
 
 ## 📈 Demo
 ### Workflow Overview
-![n8n Workflow](assets/workflow-overview.png)
+![n8n Workflow](assets/n8n_workflow.png)
 
 ### Power BI Dashboard
-![Power BI Analytics](assets/powerbi-dashboard.png)
+![Power BI Analytics](assets/powerbi_dashboard.png)
 
 
 ## 🛠️ Tech Stack
