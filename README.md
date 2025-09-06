@@ -1,6 +1,6 @@
 # 📈 Automated Stock Analytics Pipeline
 
-Real-time stock data pipeline with automated alerts and predictive analytics for personal trading insights.
+An end-to-end automated data pipeline that fetches real-time stock market data, processes it through ETL workflows, stores it in PostgreSQL, and provides intelligent analytics with predictive forecasting for the next 14 days and automated Discord alerts for trading opportunities.
 
 ## 🚀 What It Does
 
@@ -11,10 +11,10 @@ Real-time stock data pipeline with automated alerts and predictive analytics for
 - Runs automatically on schedule
 
 ## 📈 Demo
-### Workflow Overview
+### <p align="center"> Workflow Overview </p>
 ![n8n Workflow](assets/n8n_workflow.png)
 
-### Power BI Dashboard
+### <p align="center"> Power BI Dashboard </p>
 ![Power BI Analytics](assets/powerbi_dashboard.png)
 
 
