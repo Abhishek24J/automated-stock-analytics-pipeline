@@ -1,0 +1,338 @@
+{
+  "name": "Financial_data_automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -480
+      ],
+      "id": "524b22d9-f4e6-4166-80f4-725dc4a3fc7d",
+      "name": "Market Data Timer"
+    },
+    {
+      "parameters": {
+        "url": "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&apikey=XX",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        -480
+      ],
+      "id": "8de3cfae-cda9-4d87-aed7-c7624ec843e2",
+      "name": "Fetch Stock Prices"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{$json[\"Time Series (Daily)\"]}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        -480
+      ],
+      "id": "9a293cea-e636-4b8c-9a0b-55cf5e1b4974",
+      "name": "Extract Stock Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the time series data from previous node\nconst timeSeriesData = $input.first().json;\n\n// Get the original API response to extract symbol\nconst originalData = $input.first().json;\n\n// Extract symbol from the original API metadata\n// You'll need to get this from the HTTP Request node output\nconst symbol = 'AAPL'; // For now, let's hardcode it\n\n// Process the time series data\nreturn Object.keys(timeSeriesData).map(date => {\n  const dayData = timeSeriesData[date];\n  return {\n    date: date,\n    open: parseFloat(dayData['1. open']),\n    high: parseFloat(dayData['2. high']),\n    low: parseFloat(dayData['3. low']),\n    close: parseFloat(dayData['4. close']),\n    volume: parseInt(dayData['5. volume']),\n    symbol: symbol\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -480
+      ],
+      "id": "d346c9ab-d6f4-4620-9a3d-2ee7689527cd",
+      "name": "Clean Stock Data"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "stock_data",
+          "mode": "list",
+          "cachedResultName": "stock_data"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $json[\"date\"] }}",
+            "open": "={{ $json[\"open\"] }}",
+            "high": "={{ $json[\"high\"] }}",
+            "low": "={{ $json[\"low\"] }}",
+            "close": "={{ $json[\"close\"] }}",
+            "volume": "={{ $json[\"volume\"] }}",
+            "symbol": "={{ $json[\"symbol\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "open",
+              "displayName": "open",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "high",
+              "displayName": "high",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "low",
+              "displayName": "low",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "close",
+              "displayName": "close",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "volume",
+              "displayName": "volume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "symbol",
+              "displayName": "symbol",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        880,
+        -480
+      ],
+      "id": "86e79207-f08d-4c93-9ec4-30a99780c4be",
+      "name": "Save to Database",
+      "credentials": {
+        "postgres": {
+          "id": "XX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get today's closing price\nconst todayClose = $input.first().json.close;\n\n// Query yesterday's price from PostgreSQL (you'll need to fetch this)\n// For demo, let's assume yesterday's price is stored or fetched separately\nconst yesterdayClose = 150; // Replace with actual query result\n\n// Calculate percentage drop\nconst percentageDrop = ((yesterdayClose - todayClose) / yesterdayClose) * 100;\n\n// Set threshold (e.g., 5% drop)\nconst dropThreshold = 5;\n\nreturn [{\n  json: {\n    ...($input.first().json),\n    yesterdayClose: yesterdayClose,\n    todayClose: todayClose,\n    percentageDrop: percentageDrop,\n    isSignificantDrop: percentageDrop > dropThreshold\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -480
+      ],
+      "id": "842809aa-07b3-42af-9727-b8b495563958",
+      "name": "Calculate Price Drop %"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "779280e3-1636-417d-b7e9-31a21d2b36cf",
+              "leftValue": "{{ $json[\"isSignificantDrop\"] }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        -480
+      ],
+      "id": "5ad99ee8-89e1-4a8f-95b1-558488038546",
+      "name": "Price Drop Alert"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=🚨 **STOCK ALERT!** \nStock: {{ $json[\"symbol\"] }}\nPrice: ${{ $json[\"close\"] }}\nTime to buy the dip! 💰\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        -480
+      ],
+      "id": "4beccf97-b744-4790-8990-99a3f6387de4",
+      "name": "Send Buy Alert",
+      "webhookId": "XX",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "XX",
+          "name": "Discord Webhook account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Market Data Timer": {
+      "main": [
+        [
+          {
+            "node": "Fetch Stock Prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Stock Prices": {
+      "main": [
+        [
+          {
+            "node": "Extract Stock Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Stock Data": {
+      "main": [
+        [
+          {
+            "node": "Clean Stock Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Stock Data": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Database": {
+      "main": [
+        [
+          {
+            "node": "Calculate Price Drop %",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Price Drop %": {
+      "main": [
+        [
+          {
+            "node": "Price Drop Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Price Drop Alert": {
+      "main": [
+        [
+          {
+            "node": "Send Buy Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4226e04d-0aba-4539-b47d-2b3bf70d8e5c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e522c1db1d06add6e3bdd0e15a51fa87a1b46f23e0d1a694d1797cb0b78aba10"
+  },
+  "id": "e54CH2kwlleIT18w",
+  "tags": []
+}
