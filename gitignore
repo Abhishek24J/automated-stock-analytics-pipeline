@@ -1,0 +1,103 @@
+# Automated Stock Analytics Pipeline
+# Created by Abhishek Javalkoti
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# n8n
+.n8n/
+n8n.log
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Credentials and sensitive data
+credentials/
+secrets/
+config/local.json
+auth.json
+api_keys.txt
+*.pem
+*.key
+*.cert
+*.p12
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Power BI
+*.pbix.tmp
+
+# Testing
+.pytest_cache/
+test-results/
